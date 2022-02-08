@@ -40,13 +40,13 @@ impl Board for BoardImpl {
 
         let mut neighbor_mines_count = 0;
         for (rr, cc) in self.get_neighbors((r, c)) {
-                if rr == r && cc == c {
-                    continue;
-                }
+            if rr == r && cc == c {
+                continue;
+            }
 
-                if self.mines.contains(&(rr, cc)) {
-                    neighbor_mines_count += 1;
-                }
+            if self.mines.contains(&(rr, cc)) {
+                neighbor_mines_count += 1;
+            }
         }
 
         self.tiles[r][c] = TileState::REVEALED(neighbor_mines_count);
@@ -107,9 +107,10 @@ impl BoardImpl {
                 TileState::REVEALED(_) => continue,
                 TileState::HIDDEN(_) => {
                     if !self.mines.contains(&(r, c)) {
-                        self.tiles[r][c] = TileState::REVEALED(self.num_neighbor_mines((r, c)) as i8);
+                        self.tiles[r][c] =
+                            TileState::REVEALED(self.num_neighbor_mines((r, c)) as i8);
                     }
-                },
+                }
             }
 
             for neighbor in self.get_neighbors((r, c)) {
@@ -127,7 +128,10 @@ impl BoardImpl {
         let from_c = max((tile.1 as i64) - 1, 0) as usize;
         let to_c = min(tile.1 + 2, self.get_width());
 
-        (from_r..to_r).cartesian_product(from_c..to_c).filter(|&p| p != tile).collect()
+        (from_r..to_r)
+            .cartesian_product(from_c..to_c)
+            .filter(|&p| p != tile)
+            .collect()
     }
 
     fn num_neighbor_mines(&self, tile: (usize, usize)) -> u8 {
