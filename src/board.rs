@@ -50,6 +50,8 @@ impl Board for BoardImpl {
         }
 
         self.tiles[r][c] = TileState::REVEALED(neighbor_mines_count);
+
+        self.expand_revealed_tile((r, c))
     }
 
     fn get_width(&self) -> usize {
@@ -66,7 +68,9 @@ impl Board for BoardImpl {
             for c in 0..self.get_width() {
                 match self.tiles[r][c] {
                     TileState::HIDDEN(_) => s.push_str("█"),
-                    TileState::REVEALED(x) => s.push_str(&x.to_string()[..1]),
+                    TileState::REVEALED(0) => s.push_str(" "),
+                    TileState::REVEALED(-1) => s.push_str("*"),
+                    TileState::REVEALED(x) => s.push_str(&x.to_string()),
                 }
             }
             s.push_str("\n");
@@ -103,14 +107,10 @@ impl BoardImpl {
                 TileState::REVEALED(_) => continue,
                 TileState::HIDDEN(_) => {
                     if !self.mines.contains(&(r, c)) {
-                        self.reveal(r, c);
+                        self.tiles[r][c] = TileState::REVEALED(self.num_neighbor_mines((r, c)) as i8);
                     }
                 },
             }
-
-            // if self.tiles[r][c] != TileState::REVEALED(0)
-            //     continue;
-            // }
 
             for neighbor in self.get_neighbors((r, c)) {
                 if !s.contains(&neighbor) {
@@ -129,17 +129,32 @@ impl BoardImpl {
 
         (from_r..to_r).cartesian_product(from_c..to_c).filter(|&p| p != tile).collect()
     }
+
+    fn num_neighbor_mines(&self, tile: (usize, usize)) -> u8 {
+        let mut mines_count = 0;
+        for n in self.get_neighbors(tile) {
+            if self.mines.contains(&n) {
+                mines_count += 1;
+            }
+        }
+
+        mines_count
+    }
 }
 
-pub fn new(width: usize, height: usize) -> Box<dyn Board> {
+pub fn new(width: usize, height: usize, mines_count: usize) -> Option<Box<dyn Board>> {
+    if mines_count >= height * width {
+        return None;
+    }
+
     let mut tiles = Vec::new();
     for _ in 0..height {
         tiles.push(vec![TileState::HIDDEN(false); width]);
     }
 
-    Box::new(BoardImpl {
+    Some(Box::new(BoardImpl {
         tiles: tiles,
         mines: HashSet::new(),
-        mines_count: 10,
-    })
+        mines_count: mines_count,
+    }))
 }
