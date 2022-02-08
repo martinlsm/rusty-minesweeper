@@ -98,6 +98,7 @@ impl BoardImpl {
         let mut q: VecDeque<(usize, usize)> = VecDeque::new();
         let mut s: HashSet<(usize, usize)> = HashSet::new();
         q.push_back(tile);
+        s.insert(tile);
 
         while !q.is_empty() {
             let (r, c) = q.pop_back().unwrap();
@@ -107,8 +108,11 @@ impl BoardImpl {
                 TileState::REVEALED(_) => continue,
                 TileState::HIDDEN(_) => {
                     if !self.mines.contains(&(r, c)) {
-                        self.tiles[r][c] =
-                            TileState::REVEALED(self.num_neighbor_mines((r, c)) as i8);
+                        let num_neighbor_mines = self.num_neighbor_mines((r, c)) as i8;
+                        self.tiles[r][c] = TileState::REVEALED(num_neighbor_mines);
+                        if num_neighbor_mines > 0 {
+                            continue;
+                        }
                     }
                 }
             }
