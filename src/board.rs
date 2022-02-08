@@ -103,24 +103,28 @@ impl BoardImpl {
         while !q.is_empty() {
             let (r, c) = q.pop_back().unwrap();
 
+            let expand_tile: bool;
             match self.tiles[r][c] {
-                TileState::REVEALED(0) => (),
-                TileState::REVEALED(_) => continue,
+                TileState::REVEALED(0) => expand_tile = true,
+                TileState::REVEALED(_) => expand_tile = false,
                 TileState::HIDDEN(_) => {
                     if !self.mines.contains(&(r, c)) {
                         let num_neighbor_mines = self.num_neighbor_mines((r, c)) as i8;
                         self.tiles[r][c] = TileState::REVEALED(num_neighbor_mines);
-                        if num_neighbor_mines > 0 {
-                            continue;
-                        }
+
+                        expand_tile = num_neighbor_mines == 0;
+                    } else {
+                        expand_tile = false;
                     }
                 }
             }
 
-            for neighbor in self.get_neighbors((r, c)) {
-                if !s.contains(&neighbor) {
-                    q.push_back(neighbor);
-                    s.insert(neighbor);
+            if expand_tile {
+                for neighbor in self.get_neighbors((r, c)) {
+                    if !s.contains(&neighbor) {
+                        q.push_back(neighbor);
+                        s.insert(neighbor);
+                    }
                 }
             }
         }
